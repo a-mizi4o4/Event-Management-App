@@ -1,37 +1,54 @@
-import "./App.css";
-import reactLogo from "/react.svg";
-import supabaseLogo from "/supabase.svg";
-import Todos from "./components/Todos";
-import vercelLogo from "/vercel.svg";
-import viteLogo from "/vite.svg";
+import { useState, useEffect } from 'react';
+import { supabase } from './supabaseClient';
+import Auth from './Auth';
+import HostDashboard from './HostDashboard';
+import GuestEvents from './GuestEvents';
 
 function App() {
-  return (
-    <>
-      <h1>React + Vite + Supabase + Vercel</h1>
+  const [session, setSession] = useState(null);
+  const [userRole, setUserRole] = useState(null);
 
-      <div>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://supabase.com/" target="_blank">
-          <img
-            src={supabaseLogo}
-            className="logo supabase"
-            alt="React Supabase"
-          />
-        </a>
-        <a href="https://vercel.com/" target="_blank">
-          <img src={vercelLogo} className="logo vercel" alt="React Vercel" />
-        </a>
-        <p className="read-the-docs">Click on logos to learn more.</p>
-      </div>
-      <Todos />
-    </>
-  );
+  useEffect(() => {
+    // 1. Check if a user is already logged in
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) getProfile(session.user.id);
+    });
+
+    // 2. Listen for login/logout changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) getProfile(session.user.id);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // 3. Fetch the role from the profiles table
+  async function getProfile(userId) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    if (data) setUserRole(data.role);
+  }
+
+  // --- TRAFFIC COP LOGIC ---
+  if (!session) {
+    return <Auth />; // If not logged in, show Login/Register
+  }
+
+  if (userRole === 'host') {
+    return <HostDashboard />; // If Host, show Dashboard
+  }
+
+  if (userRole === 'guest') {
+    return <GuestEvents />; // If Guest, show Events list
+  }
+
+  return <div>Loading profile...</div>;
 }
 
 export default App;
