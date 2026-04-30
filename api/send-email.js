@@ -12,11 +12,11 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer re_L3vMjxGs_H4gjsDgxFSDL71Ttk8v5vzT7',
+        'Authorization': 'Bearer re_YDWbv2az_HSqKMFyHygrMocxhZ1R3h7Ec',
       },
       body: JSON.stringify({
         from: 'onboarding@resend.dev',
-        to: 'uktaha740@gmail.com',
+        to: '16jamesm@gmail.com',
         subject: `Ticket for ${eventTitle} — booked by ${guestEmail}`,
         html: `
           <div style="background:#000;color:#fff;font-family:'Courier New',monospace;padding:40px;max-width:600px;margin:0 auto;">
